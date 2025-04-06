@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block content %}
+<div class="ai-chat-container">
+    <div class="chat-header">
+        <h1>AI Teaching Assistant</h1>
+        <p class="subtitle">Ask questions about your assignments, get help with studying, or get explanations for complex topics.</p>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message system">
+            <div class="message-content">
+                Hello! I'm your AI teaching assistant. How can I help you today?
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input">
+        <form id="chatForm" onsubmit="sendMessage(event)">
+            <textarea 
+                id="userInput" 
+                placeholder="Type your message here..." 
+                rows="3"
+                onkeydown="handleKeyPress(event)"></textarea>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane"></i>
+                Send
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-chat-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .chat-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .chat-header h1 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .chat-messages {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        min-height: 400px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message:last-child {
+        margin-bottom: 0;
+    }
+
+    .message.user {
+        align-items: flex-end;
+    }
+
+    .message.ai {
+        align-items: flex-start;
+    }
+
+    .message-content {
+        max-width: 80%;
+        padding: 1rem;
+        border-radius: 12px;
+        line-height: 1.5;
+    }
+
+    .message.system .message-content {
+        background: #f8f9fa;
+        color: #6c757d;
+        text-align: center;
+        max-width: 100%;
+        font-style: italic;
+    }
+
+    .message.user .message-content {
+        background: #007bff;
+        color: white;
+        border-radius: 12px 12px 0 12px;
+    }
+
+    .message.ai .message-content {
+        background: #f8f9fa;
+        color: #2c3e50;
+        border-radius: 12px 12px 12px 0;
+    }
+
+    .chat-input {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .chat-input form {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .chat-input textarea {
+        flex: 1;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 0.75rem;
+        resize: none;
+        font-family: inherit;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .chat-input textarea:focus {
+        outline: none;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+
+    .chat-input button {
+        align-self: flex-end;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+    }
+
+    .chat-input button i {
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        .ai-chat-container {
+            margin: 1rem auto;
+        }
+
+        .message-content {
+            max-width: 90%;
+        }
+
+        .chat-input form {
+            flex-direction: column;
+        }
+
+        .chat-input button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const chatForm = document.getElementById('chatForm');
+const userInput = document.getElementById('userInput');
+
+function addMessage(content, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    
+    // Format the content to preserve line breaks
+    if (type === 'ai' || type === 'system') {
+        // Replace line breaks with <br> tags
+        const formattedContent = content.replace(/\n/g, '<br>');
+        messageContent.innerHTML = formattedContent;
+    } else {
+        // For user messages, just use text
+        messageContent.textContent = content;
+    }
+    
+    messageDiv.appendChild(messageContent);
+    chatMessages.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage(event);
+    }
+}
+
+async function sendMessage(event) {
+    event.preventDefault();
+    
+    const message = userInput.value.trim();
+    if (!message) return;
+    
+    // Add user message to chat
+    addMessage(message, 'user');
+    
+    // Clear input
+    userInput.value = '';
+    
+    try {
+        // Show loading message
+        const loadingId = setTimeout(() => {
+            addMessage('Thinking...', 'system');
+        }, 500);
+        
+        // Send request to backend
+        const response = await fetch('/ai/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ prompt: message })
+        });
+        
+        clearTimeout(loadingId);
+        
+        // Remove loading message if it was added
+        const loadingMessage = chatMessages.querySelector('.message.system:last-child');
+        if (loadingMessage?.textContent === 'Thinking...') {
+            chatMessages.removeChild(loadingMessage);
+        }
+        
+        // Handle different HTTP status codes
+        if (!response.ok) {
+            console.error(`HTTP error: ${response.status}`);
+            addMessage('Sorry, there was an error communicating with the server. Please try again later.', 'system');
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.response) {
+            // Successfully got a response
+            addMessage(data.response, 'ai');
+        } else if (data.error) {
+            // Got an error message
+            addMessage(`Sorry, I encountered an error: ${data.error}`, 'system');
+        } else {
+            // Fallback for unexpected response format
+            addMessage('Sorry, I received an unexpected response. Please try again.', 'system');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        addMessage('Sorry, I encountered a technical error. Please try again later.', 'system');
+    }
+}
+</script>
+{% endblock %} 

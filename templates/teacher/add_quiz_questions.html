@@ -1,0 +1,160 @@
+{% extends "base.html" %} {% block title %}Add Questions - {{ quiz.title }}{%
+endblock %} {% block content %}
+<div class="auth-container">
+  <h2>Add Question</h2>
+  <h3 class="class-name">{{ quiz.title }} - {{ class_obj.name }}</h3>
+
+  <form
+    method="POST"
+    action="{{ url_for('teacher.add_quiz_questions', class_id=class_obj.id, quiz_id=quiz.id) }}"
+    class="auth-form"
+    id="questionForm"
+  >
+    <div class="form-group">
+      <label for="question_text">Question</label>
+      <textarea
+        id="question_text"
+        name="question_text"
+        rows="4"
+        class="form-textarea"
+        required
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="question_type">Question Type</label>
+      <select
+        id="question_type"
+        name="question_type"
+        class="form-select"
+        required
+        onchange="toggleOptions()"
+      >
+        <option value="multiple_choice">Multiple Choice</option>
+        <option value="true_false">True/False</option>
+        <option value="short_answer">Short Answer</option>
+      </select>
+    </div>
+
+    <div id="optionsContainer" class="form-group">
+      <label>Options</label>
+      <div id="optionsList">
+        <div class="option-item">
+          <input
+            type="text"
+            name="options[]"
+            class="form-control"
+            placeholder="Option 1"
+            required
+          />
+        </div>
+        <div class="option-item">
+          <input
+            type="text"
+            name="options[]"
+            class="form-control"
+            placeholder="Option 2"
+            required
+          />
+        </div>
+      </div>
+      <button type="button" class="btn-secondary" onclick="addOption()">
+        Add Option
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label for="correct_answer">Correct Answer</label>
+      <input type="text" id="correct_answer" name="correct_answer" required />
+    </div>
+
+    <div class="form-group">
+      <label for="points">Points</label>
+      <input
+        type="number"
+        id="points"
+        name="points"
+        value="1"
+        min="1"
+        required
+      />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" name="add_another" value="1" class="btn-secondary">
+        Save & Add Another
+      </button>
+      <button type="submit" class="btn-primary">Save & Finish</button>
+    </div>
+  </form>
+
+  <p class="auth-link">
+    <a href="{{ url_for('teacher.class_details', class_id=class_obj.id) }}"
+      >Back to Class</a
+    >
+  </p>
+</div>
+
+{% block extra_css %}
+<style>
+  .class-name {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  .option-item {
+    margin-bottom: 0.5rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  function toggleOptions() {
+    const questionType = document.getElementById("question_type").value;
+    const optionsContainer = document.getElementById("optionsContainer");
+    const correctAnswer = document.getElementById("correct_answer");
+
+    if (questionType === "multiple_choice") {
+      optionsContainer.style.display = "block";
+      correctAnswer.placeholder = "Enter the correct option text";
+    } else if (questionType === "true_false") {
+      optionsContainer.style.display = "none";
+      correctAnswer.placeholder = "Enter true or false";
+    } else {
+      optionsContainer.style.display = "none";
+      correctAnswer.placeholder = "Enter the correct answer";
+    }
+  }
+
+  function addOption() {
+    const optionsList = document.getElementById("optionsList");
+    const optionCount = optionsList.children.length + 1;
+
+    const optionItem = document.createElement("div");
+    optionItem.className = "option-item";
+    optionItem.innerHTML = `
+        <input type="text" name="options[]" class="form-control" placeholder="Option ${optionCount}" required>
+    `;
+
+    optionsList.appendChild(optionItem);
+  }
+
+  // Initialize on page load
+  document.addEventListener("DOMContentLoaded", toggleOptions);
+</script>
+{% endblock %} {% endblock %}

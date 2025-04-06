@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Study Plan Generator{% endblock %}
+{% block content %}
+<div class="study-plan-container">
+  <div class="study-plan-header">
+    <h1>AI Study Plan Generator</h1>
+    <p class="lead">Create a personalized study plan based on your goals and available time.</p>
+  </div>
+  
+  <div class="study-plan-form">
+    <form action="{{ url_for('ai.generate_study_plan') }}" method="POST">
+      <div class="form-group">
+        <label for="subject">Subject or Topic</label>
+        <input type="text" id="subject" name="subject" class="form-control" placeholder="e.g., Calculus, American History, Python Programming" required>
+        <small class="form-text">Be specific about what you want to learn</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="goal">Learning Goal</label>
+        <textarea id="goal" name="goal" class="form-control" rows="3" placeholder="e.g., Pass my final exam, Master advanced concepts, Complete a specific project" required></textarea>
+        <small class="form-text">What do you want to achieve by studying this subject?</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="time_available">Time Available (per week)</label>
+        <input type="text" id="time_available" name="time_available" class="form-control" placeholder="e.g., 5 hours, 3 sessions of 2 hours each" required>
+        <small class="form-text">How much time can you dedicate to studying each week?</small>
+      </div>
+      
+      <button type="submit" class="btn-primary">Generate Study Plan</button>
+    </form>
+  </div>
+  
+  <div class="study-tips">
+    <h3>Tips for Effective Studying</h3>
+    <ul class="tips-list">
+      <li><strong>Consistency is key:</strong> Regular, scheduled study sessions are more effective than cramming</li>
+      <li><strong>Active recall:</strong> Test yourself on the material rather than just re-reading it</li>
+      <li><strong>Spaced repetition:</strong> Review material at increasing intervals to improve long-term retention</li>
+      <li><strong>Take breaks:</strong> Short breaks during study sessions help maintain focus and improve learning</li>
+      <li><strong>Varied practice:</strong> Mix up different topics and problem types in each study session</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .study-plan-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .study-plan-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .lead {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+  
+  .study-plan-form {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #343a40;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+  }
+  
+  .form-text {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+  
+  .btn-primary {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background: #0069d9;
+  }
+  
+  .study-tips {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+  }
+  
+  .study-tips h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  .tips-list {
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+  
+  .tips-list li {
+    margin-bottom: 0.75rem;
+    color: #495057;
+  }
+  
+  .tips-list strong {
+    color: #343a40;
+  }
+</style>
+{% endblock %} 

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('student.class_view', class_id=quiz.class_obj.id) }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Class
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="quiz-header">
+                <h2>{{ quiz.title }}</h2>
+                <div class="quiz-meta">
+                    <p class="due-date">
+                        Due: {{ quiz.due_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% if datetime.utcnow() > quiz.due_date %}
+                            <span class="badge bg-danger">Past Due</span>
+                        {% endif %}
+                    </p>
+                    {% if quiz.time_limit %}
+                        <p class="time-limit">Time Limit: {{ quiz.time_limit }} minutes</p>
+                    {% endif %}
+                    <p class="total-points">Total Points: {{ quiz.total_points }}</p>
+                </div>
+            </div>
+
+            <div class="quiz-description">
+                <h3>Description</h3>
+                <p>{{ quiz.description }}</p>
+            </div>
+
+            <div class="attempts-section">
+                <h3>Your Attempts</h3>
+                {% if attempts %}
+                    <div class="attempts-list">
+                        {% for attempt in attempts %}
+                            <div class="attempt-item">
+                                <div class="attempt-info">
+                                    <h4>Attempt #{{ loop.index }}</h4>
+                                    <p>Started: {{ attempt.started_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    {% if attempt.completed_at %}
+                                        <p>Score: {{ attempt.score }} / {{ quiz.total_points }}
+                                        {% if quiz.total_points > 0 %}
+                                            ({{ "%.2f"|format(attempt.score / quiz.total_points * 100) }}%)
+                                        {% else %}
+                                            (N/A)
+                                        {% endif %}</p>
+                                        <a href="{{ url_for('student.review_quiz_attempt', quiz_id=quiz.id, attempt_id=attempt.id) }}" 
+                                           class="btn-secondary">Review Attempt</a>
+                                    {% else %}
+                                        <p class="in-progress">In Progress</p>
+                                        <a href="{{ url_for('student.take_quiz', quiz_id=quiz.id, attempt_id=attempt.id) }}" 
+                                           class="btn-primary">Continue Attempt</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-attempts">You haven't attempted this quiz yet.</p>
+                {% endif %}
+
+                {% if datetime.utcnow() <= quiz.due_date %}
+                    <div class="start-quiz">
+                        <a href="{{ url_for('student.start_quiz', quiz_id=quiz.id) }}" class="btn-primary">
+                            Start New Attempt
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .quiz-header {
+        margin-bottom: 2rem;
+    }
+
+    .quiz-meta {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .quiz-description {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .attempts-section {
+        margin-top: 2rem;
+    }
+
+    .attempts-list {
+        display: grid;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+
+    .attempt-item {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .attempt-info h4 {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .attempt-info p {
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+    }
+
+    .in-progress {
+        color: #ffc107 !important;
+        font-weight: 500;
+    }
+
+    .no-attempts {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .start-quiz {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.25rem;
+    }
+
+    .bg-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
+{% endblock %} 

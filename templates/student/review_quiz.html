@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Review Quiz - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('student.view_quiz', quiz_id=quiz.id) }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Quiz Overview
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="quiz-header">
+                <h2>{{ quiz.title }} - Review</h2>
+                <div class="attempt-info">
+                    <p>Completed: {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% if attempt.score is not none %}
+                        <p class="grade">Score: {{ attempt.score }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="class-list">
+                {% for question in quiz.questions %}
+                    {% set answer = attempt.answers|selectattr('question_id', 'equalto', question.id)|first %}
+                    <div class="class-item">
+                        <div class="question-header">
+                            <h4>Question {{ loop.index }}</h4>
+                            <span class="points">
+                                {% if answer and answer.points_earned is not none %}
+                                    Points: {{ answer.points_earned }}/{{ question.points }}
+                                {% else %}
+                                    Points: {{ question.points }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="question-content">
+                            <p>{{ question.question_text }}</p>
+
+                            <div class="submission-status">
+                                <h5>Your Answer:</h5>
+                                <div class="description-content">
+                                    {{ answer.answer_text if answer else 'No answer provided' }}
+                                </div>
+
+                                {% if answer %}
+                                    {% if question.question_type in ['multiple_choice', 'true_false'] %}
+                                        {% if answer.is_correct %}
+                                            <div class="alert">
+                                                <i class="fas fa-check"></i> Correct!
+                                            </div>
+                                        {% else %}
+                                            <div class="alert">
+                                                <i class="fas fa-times"></i> Incorrect
+                                                <div class="feedback">
+                                                    <strong>Correct Answer:</strong> {{ question.correct_answer }}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if answer.points_earned is not none %}
+                                            <div class="feedback">
+                                                <strong>Points Earned:</strong> {{ answer.points_earned }}/{{ question.points }}
+                                            </div>
+                                        {% else %}
+                                            <div class="alert">
+                                                <i class="fas fa-clock"></i> Pending Review
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="dashboard-actions">
+                <a href="{{ url_for('student.view_quiz', quiz_id=quiz.id) }}" class="btn-secondary">
+                    Back to Quiz Overview
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .nav-links i {
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %} 

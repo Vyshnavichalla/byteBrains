@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('student.dashboard') }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="assignment-header">
+                <h2>{{ assignment.title }}</h2>
+                <div class="assignment-meta">
+                    <p class="due-date">
+                        Due: {{ assignment.due_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% if datetime.utcnow() > assignment.due_date %}
+                            <span class="badge bg-danger">Past Due</span>
+                        {% endif %}
+                    </p>
+                    <p class="points">Maximum Points: {{ assignment.max_points }}</p>
+                </div>
+            </div>
+
+            <div class="assignment-description">
+                <h4>Instructions</h4>
+                <div class="description-content">
+                    {{ assignment.description }}
+                </div>
+            </div>
+
+            {% if submission %}
+                <div class="submission-status">
+                    <h4>Your Submission</h4>
+                    <p>Submitted on: {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    
+                    {% if submission.grade is not none %}
+                        <div class="grade-info">
+                            <h5>Grade</h5>
+                            <p class="grade">{{ submission.grade }}/{{ assignment.max_points }}</p>
+                            {% if submission.feedback %}
+                                <div class="feedback">
+                                    <h5>Feedback</h5>
+                                    <p>{{ submission.feedback }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Not graded yet</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if datetime.utcnow() <= assignment.due_date %}
+                <div class="submission-form">
+                    <h4>{% if submission %}Update{% else %}Submit{% endif %} Your Work</h4>
+                    <form method="POST">
+                        <div class="form-group">
+                            <label for="submission_text">Your Answer</label>
+                            <textarea class="form-textarea" id="submission_text" 
+                                      name="submission_text" rows="10" required>{{ submission.submission_text if submission else '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            {% if submission %}Update Submission{% else %}Submit Assignment{% endif %}
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .nav-links i {
+        font-size: 0.9em;
+    }
+
+    .assignment-header {
+        margin-bottom: 2rem;
+    }
+
+    .assignment-meta {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .due-date {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .points {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .assignment-description {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .description-content {
+        white-space: pre-wrap;
+    }
+
+    .submission-status {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .grade-info {
+        margin-top: 1rem;
+    }
+
+    .grade {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .feedback {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #fff;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
+
+    .submission-form {
+        margin-top: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block title %}Quiz Attempt Details{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('teacher.view_quiz_attempts', quiz_id=quiz.id) }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Quiz Attempts
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="attempt-header">
+                <h2>{{ quiz.title }} - Attempt Review</h2>
+                <div class="attempt-meta">
+                    <p>Student: {{ student.name }}</p>
+                    <p>Started: {{ attempt.started_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% if attempt.completed_at %}
+                        <p>Completed: {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% else %}
+                        <p class="in-progress">In Progress</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if not attempt.score %}
+                <div class="auto-grade-section">
+                    <h4>Auto-Grade Quiz</h4>
+                    <div class="auto-grade-info">
+                        <p>This quiz attempt has not been graded yet. Use AI to automatically grade all answers.</p>
+                        <p>The AI will:</p>
+                        <ul>
+                            <li>Check each answer against the correct answer</li>
+                            <li>Assign points based on correctness</li>
+                            <li>Provide feedback for each answer</li>
+                            <li>Calculate the total score</li>
+                        </ul>
+                    </div>
+                    <form method="POST" class="auto-grade-form">
+                        <input type="hidden" name="auto_grade" value="1">
+                        <button type="submit" class="btn-primary">Auto-Grade Quiz</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="score-display">
+                    <h4>Score</h4>
+                    <p class="score">{{ attempt.score }} / {{ quiz.total_points }}
+                    {% if quiz.total_points > 0 %}
+                        ({{ "%.2f"|format(attempt.score / quiz.total_points * 100) }}%)
+                    {% else %}
+                        (N/A)
+                    {% endif %}</p>
+                </div>
+            {% endif %}
+
+            <div class="answers-section">
+                <h4>Student's Answers</h4>
+                {% for question in quiz.questions %}
+                    {% set answer = answers_dict.get(question.id) %}
+                    <div class="question-container {% if answer and answer.is_correct %}correct{% elif answer %}incorrect{% else %}unanswered{% endif %}">
+                        <div class="question-header">
+                            <h5>Question {{ loop.index }}</h5>
+                            <span class="points">Points: 
+                                {% if answer %}
+                                    {{ answer.points_earned }} / {{ question.points }}
+                                {% else %}
+                                    0 / {{ question.points }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <p class="question-text">{{ question.question_text }}</p>
+                        
+                        <div class="answer-section">
+                            <div class="answer-column">
+                                <h6>Student's Answer:</h6>
+                                <div class="answer-content">
+                                    {% if answer %}
+                                        {{ answer.student_answer }}
+                                    {% else %}
+                                        <em>No answer provided</em>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="answer-column">
+                                <h6>Correct Answer:</h6>
+                                <div class="answer-content correct">
+                                    {{ question.correct_answer }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if answer and answer.feedback %}
+                            <div class="feedback-section">
+                                <h6>Feedback:</h6>
+                                <p class="feedback-text">{{ answer.feedback }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ url_for('teacher.student_performance', student_id=student.id) }}" class="btn-secondary">
+                    View Student Performance Analysis
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .attempt-header {
+        margin-bottom: 2rem;
+    }
+
+    .attempt-meta {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .in-progress {
+        color: #ffc107;
+        font-weight: 500;
+    }
+
+    .auto-grade-section,
+    .score-display {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .auto-grade-info {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .auto-grade-info ul {
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .score {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .answers-section {
+        margin-bottom: 2rem;
+    }
+
+    .question-container {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        border-left: 4px solid #6c757d;
+    }
+
+    .question-container.correct {
+        border-left-color: #28a745;
+    }
+
+    .question-container.incorrect {
+        border-left-color: #dc3545;
+    }
+
+    .question-container.unanswered {
+        border-left-color: #ffc107;
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .points {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .question-text {
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+
+    .answer-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .answer-column h6 {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .answer-content {
+        padding: 0.75rem;
+        background-color: white;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        white-space: pre-wrap;
+    }
+
+    .answer-content.correct {
+        border-color: #28a745;
+    }
+
+    .feedback-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed #dee2e6;
+    }
+
+    .feedback-text {
+        padding: 0.75rem;
+        background-color: #fff8e6;
+        border-radius: 0.25rem;
+        font-style: italic;
+    }
+
+    .action-buttons {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %} 

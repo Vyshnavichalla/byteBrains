@@ -1,0 +1,21 @@
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
+<div class="hero">
+  <h1>Welcome to AI Teacher Assistant</h1>
+  <p>Empowering teachers with AI-powered grading and personalized feedback</p>
+  {% if not current_user.is_authenticated %}
+  <div class="cta-buttons">
+    <a href="{{ url_for('auth.login') }}" class="btn-primary">Login</a>
+    <a href="{{ url_for('auth.signup') }}" class="btn-secondary">Sign Up</a>
+  </div>
+  {% else %}
+  <div class="cta-buttons">
+    <a
+      href="{{ url_for('teacher.dashboard' if current_user.is_teacher() else 'student.dashboard') }}"
+      class="btn-primary"
+      >Go to Dashboard</a
+    >
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

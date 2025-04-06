@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Review Quiz Attempt - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('student.view_quiz', quiz_id=quiz.id) }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Quiz Overview
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="quiz-header">
+                <h2>{{ quiz.title }} - Review</h2>
+                <div class="quiz-meta">
+                    <p>Submitted: {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <p>Score: {{ attempt.score }} / {{ quiz.total_points }}</p>
+                    {% if quiz.total_points > 0 %}
+                        <p>Percentage: {{ "%.2f"|format(attempt.score / quiz.total_points * 100) }}%</p>
+                    {% else %}
+                        <p>Percentage: N/A</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="questions-review">
+                {% for question in quiz.questions %}
+                    {% set answer = attempt.answers|selectattr("question_id", "equalto", question.id)|first %}
+                    <div class="question-container {% if answer.is_correct %}correct{% else %}incorrect{% endif %}">
+                        <h4>Question {{ loop.index }}</h4>
+                        <p class="question-text">{{ question.question_text }}</p>
+                        <p class="points-text">
+                            Points: {{ answer.points_earned }} / {{ question.points }}
+                        </p>
+                        
+                        <div class="answer-section">
+                            <div class="student-answer">
+                                <h5>Your Answer:</h5>
+                                <p>{{ answer.student_answer }}</p>
+                            </div>
+                            
+                            <div class="correct-answer">
+                                <h5>Correct Answer:</h5>
+                                <p>{{ question.correct_answer }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .quiz-header {
+        margin-bottom: 2rem;
+    }
+
+    .quiz-meta {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .question-container {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid transparent;
+    }
+
+    .question-container.correct {
+        border-left-color: #28a745;
+    }
+
+    .question-container.incorrect {
+        border-left-color: #dc3545;
+    }
+
+    .question-text {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .points-text {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .answer-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .student-answer,
+    .correct-answer {
+        padding: 1rem;
+        background-color: white;
+        border-radius: 4px;
+    }
+
+    .student-answer h5,
+    .correct-answer h5 {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .student-answer {
+        border: 1px solid #ced4da;
+    }
+
+    .correct-answer {
+        border: 1px solid #28a745;
+    }
+</style>
+{% endblock %} 

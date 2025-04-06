@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}Student Performance Analysis{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="javascript:history.back()" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        <h1>Performance Analysis: {{ student.name }}</h1>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="performance-summary">
+                <h3>Weak Topics Analysis</h3>
+                
+                {% if performance_analysis.weak_topics %}
+                    <div class="topics-grid">
+                        {% for topic in performance_analysis.weak_topics %}
+                            <div class="topic-card">
+                                <div class="topic-header">
+                                    <h4>{{ topic.topic }}</h4>
+                                    <div class="confidence-indicator" style="--confidence: {{ topic.confidence * 100 }}%">
+                                        <div class="confidence-fill"></div>
+                                    </div>
+                                    <span class="confidence-label">Difficulty: {{ "%.0f"|format(topic.confidence * 100) }}%</span>
+                                </div>
+                                <div class="topic-body">
+                                    <div class="occurrences">
+                                        <span class="occurrence-count">{{ topic.occurrences }}</span>
+                                        <span class="occurrence-label">occurrence{% if topic.occurrences != 1 %}s{% endif %}</span>
+                                    </div>
+                                    <div class="recommendation">
+                                        <h5>Recommendation</h5>
+                                        <p>{{ topic.recommendation }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data">
+                        <p>Not enough data to analyze weak topics. The student needs to complete more assignments and quizzes.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="performance-details">
+                <h3>Learning Activities</h3>
+                <div class="tabbed-content">
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="openTab(event, 'assignments')">Assignments</button>
+                        <button class="tab-button" onclick="openTab(event, 'quizzes')">Quizzes</button>
+                    </div>
+                    
+                    <div id="assignments" class="tab-pane active">
+                        {% if submissions %}
+                            <div class="table-container">
+                                <table class="performance-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Assignment</th>
+                                            <th>Date</th>
+                                            <th>Score</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for submission in submissions %}
+                                            <tr>
+                                                <td>{{ submission.assignment.title }}</td>
+                                                <td>{{ submission.submitted_at.strftime('%Y-%m-%d') }}</td>
+                                                <td>
+                                                    {% if submission.grade is not none %}
+                                                        {{ submission.grade }} / {{ submission.assignment.max_points }}
+                                                        ({{ "%.1f"|format(submission.grade / submission.assignment.max_points * 100) }}%)
+                                                    {% else %}
+                                                        Not graded
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="{{ url_for('teacher.view_submission', submission_id=submission.id) }}" class="btn-link">View</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="no-data">
+                                <p>No assignment submissions found.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="quizzes" class="tab-pane">
+                        {% if quiz_attempts %}
+                            <div class="table-container">
+                                <table class="performance-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Quiz</th>
+                                            <th>Date</th>
+                                            <th>Score</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for attempt in quiz_attempts %}
+                                            {% if attempt.completed_at %}
+                                                <tr>
+                                                    <td>{{ attempt.quiz.title }}</td>
+                                                    <td>{{ attempt.completed_at.strftime('%Y-%m-%d') }}</td>
+                                                    <td>
+                                                        {% if attempt.score is not none %}
+                                                            {% if attempt.quiz.total_points > 0 %}
+                                                                {{ attempt.score }} / {{ attempt.quiz.total_points }}
+                                                                ({{ "%.1f"|format(attempt.score / attempt.quiz.total_points * 100) }}%)
+                                                            {% else %}
+                                                                {{ attempt.score }} / 0 (N/A)
+                                                            {% endif %}
+                                                        {% else %}
+                                                            Not graded
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ url_for('teacher.view_quiz_attempt_details', attempt_id=attempt.id) }}" class="btn-link">View</a>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="no-data">
+                                <p>No quiz attempts found.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openTab(evt, tabName) {
+        // Hide all tab content
+        var tabPanes = document.getElementsByClassName("tab-pane");
+        for (var i = 0; i < tabPanes.length; i++) {
+            tabPanes[i].classList.remove("active");
+        }
+        
+        // Remove "active" class from all tab buttons
+        var tabButtons = document.getElementsByClassName("tab-button");
+        for (var i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+        
+        // Show the current tab, and add "active" class to the button that opened the tab
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #343a40;
+    }
+
+    .performance-summary,
+    .performance-details {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .topics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .topic-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .topic-header {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .topic-header h4 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.1rem;
+        color: #495057;
+    }
+
+    .confidence-indicator {
+        height: 0.5rem;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        width: var(--confidence);
+        background-color: #dc3545;
+        border-radius: 0.25rem;
+    }
+
+    .confidence-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .topic-body {
+        padding: 1rem;
+    }
+
+    .occurrences {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 0.75rem;
+    }
+
+    .occurrence-count {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #495057;
+        margin-right: 0.5rem;
+    }
+
+    .occurrence-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .recommendation h5 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .recommendation p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: #495057;
+    }
+
+    .no-data {
+        padding: 2rem 0;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .tabbed-content {
+        margin-top: 1.5rem;
+    }
+
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+
+    .tab-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: none;
+        font-weight: 500;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+        color: #495057;
+    }
+
+    .tab-button.active {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+    }
+
+    .tab-pane {
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .performance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .performance-table th, 
+    .performance-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .performance-table th {
+        background-color: #f8f9fa;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .performance-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .btn-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %} 

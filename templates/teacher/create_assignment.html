@@ -1,0 +1,64 @@
+{% extends "base.html" %} {% block title %}Create Assignment - {{ class_obj.name
+}}{% endblock %} {% block content %}
+<div class="auth-container">
+  <h2>Create Assignment</h2>
+  <h3 class="class-name">{{ class_obj.name }}</h3>
+
+  <form
+    method="POST"
+    action="{{ url_for('teacher.create_assignment', class_id=class_obj.id) }}"
+    class="auth-form"
+  >
+    <div class="form-group">
+      <label for="title">Assignment Title</label>
+      <input type="text" id="title" name="title" required />
+    </div>
+
+    <div class="form-group">
+      <label for="description">Assignment Description</label>
+      <textarea
+        id="description"
+        name="description"
+        rows="6"
+        class="form-textarea"
+        required
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="due_date">Due Date</label>
+      <input type="datetime-local" id="due_date" name="due_date" required />
+    </div>
+
+    <div class="form-group">
+      <label for="max_points">Maximum Points</label>
+      <input
+        type="number"
+        id="max_points"
+        name="max_points"
+        value="100"
+        min="1"
+        required
+      />
+    </div>
+
+    <button type="submit" class="btn-primary">Create Assignment</button>
+  </form>
+
+  <p class="auth-link">
+    <a href="{{ url_for('teacher.class_details', class_id=class_obj.id) }}"
+      >Back to Class</a
+    >
+  </p>
+</div>
+
+{% block extra_css %}
+<style>
+  .class-name {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+</style>
+{% endblock %} {% endblock %}

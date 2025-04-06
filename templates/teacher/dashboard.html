@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block title %}Teacher Dashboard{% endblock %} {%
+block content %}
+<div class="dashboard">
+  <h1>Welcome, {{ current_user.username }}!</h1>
+  <div class="dashboard-actions">
+    <a href="{{ url_for('teacher.create_class') }}" class="btn-primary"
+      >Create New Class</a
+    >
+  </div>
+  <div class="dashboard-content">
+    <div class="dashboard-card">
+      <h3>Your Classes</h3>
+      {% if classes %}
+      <div class="class-list">
+        {% for class in classes %}
+        <div class="class-item">
+          <h4>
+            <a href="{{ url_for('teacher.class_details', class_id=class.id) }}"
+              >{{ class.name }}</a
+            >
+          </h4>
+          {% if class.description %}
+          <p>{{ class.description }}</p>
+          {% endif %}
+          <p class="class-code">
+            Join Code: <strong>{{ class.join_code }}</strong>
+          </p>
+          <p>Students: {{ class.students.count() }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p>You haven't created any classes yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

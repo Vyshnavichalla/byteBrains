@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1>Student Dashboard</h1>
+        <div class="dashboard-actions">
+            <a href="{{ url_for('student.join_class') }}" class="btn-primary">Join New Class</a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <!-- Enrolled Classes -->
+        <div class="dashboard-card">
+            <h3>My Classes</h3>
+            {% if classes %}
+                <div class="class-list">
+                    {% for class in classes %}
+                        <div class="class-item">
+                            <h4>{{ class.name }}</h4>
+                            {% if class.description %}
+                                <p>{{ class.description }}</p>
+                            {% endif %}
+                            <p class="text-muted">Teacher: {{ class.teacher.username }}</p>
+                            
+                            <!-- Class Stats -->
+                            <div class="class-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Pending Assignments</span>
+                                    <span class="stat-value">
+                                        {% set pending_count = 0 %}
+                                        {% for assignment in class.assignments %}
+                                            {% if assignment.due_date and assignment.due_date > now %}
+                                                {% set submission = assignment.get_submission(current_user) %}
+                                                {% if not submission %}
+                                                    {% set pending_count = pending_count + 1 %}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {{ pending_count }}
+                                    </span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Pending Quizzes</span>
+                                    <span class="stat-value">
+                                        {{ class.quizzes|selectattr('due_date')|selectattr('due_date', 'ge', now)|list|length }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="class-actions">
+                                <a href="{{ url_for('student.class_view', class_id=class.id) }}" class="btn-secondary">
+                                    View Class
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>You haven't joined any classes yet.</p>
+                    <a href="{{ url_for('student.join_class') }}" class="btn-primary">Join Your First Class</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="dashboard-card">
+            <h3>Recent Activity</h3>
+            <div class="activity-list">
+                {% set recent_submissions = current_user.submitted_assignments|sort(attribute='submitted_at', reverse=true) %}
+                {% set recent_attempts = current_user.quiz_attempts|sort(attribute='started_at', reverse=true) %}
+                
+                {% if recent_submissions or recent_attempts %}
+                    {% for submission in recent_submissions[:5] %}
+                        <div class="activity-item">
+                            <span class="activity-type assignment">Assignment</span>
+                            <div class="activity-details">
+                                <h5>{{ submission.assignment.title }}</h5>
+                                <p>Submitted: {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                {% if submission.grade is not none %}
+                                    <span class="badge bg-info">Grade: {{ submission.grade }}/{{ submission.assignment.max_points }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Not Graded</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    {% for attempt in recent_attempts[:5] %}
+                        <div class="activity-item">
+                            <span class="activity-type quiz">Quiz</span>
+                            <div class="activity-details">
+                                <h5>{{ attempt.quiz.title }}</h5>
+                                <p>Attempted: {{ attempt.started_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                {% if attempt.completed_at %}
+                                    {% if attempt.score is not none %}
+                                        <span class="badge bg-info">Score: {{ attempt.score }}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending Grade</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning">In Progress</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No recent activity</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .dashboard-content {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .class-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .class-item {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .class-stats {
+        display: flex;
+        gap: 2rem;
+        margin: 1rem 0;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .activity-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .activity-type {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .activity-type.assignment {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .activity-type.quiz {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .activity-details {
+        flex: 1;
+    }
+
+    .activity-details h5 {
+        margin: 0 0 0.5rem 0;
+        color: #2c3e50;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+
+    .btn-secondary {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        color: white;
+    }
+
+    .badge {
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}

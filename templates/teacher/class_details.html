@@ -1,0 +1,323 @@
+{% extends "base.html" %} {% block title %}{{ class_obj.name }}{% endblock %} {%
+block content %}
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>{{ class_obj.name }}</h1>
+    <div class="dashboard-actions">
+      <a
+        href="{{ url_for('teacher.create_assignment', class_id=class_obj.id) }}"
+        class="btn-primary"
+        >Create Assignment</a
+      >
+      <a
+        href="{{ url_for('teacher.create_quiz', class_id=class_obj.id) }}"
+        class="btn-primary"
+        >Create Quiz</a
+      >
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Class Info -->
+    <div class="dashboard-card">
+      <h3>Class Information</h3>
+      {% if class_obj.description %}
+      <p class="class-description">{{ class_obj.description }}</p>
+      {% endif %}
+      <p class="class-code">
+        Join Code: <strong>{{ class_obj.join_code }}</strong>
+      </p>
+      <p>Students Enrolled: {{ class_obj.students.count() }}</p>
+    </div>
+
+    <!-- Assignments -->
+    <div class="dashboard-card">
+      <h3>Assignments</h3>
+      {% if class_obj.assignments %}
+      <div class="assignment-list">
+        {% for assignment in class_obj.assignments %}
+        <div class="assignment-item">
+          <div class="item-header">
+            <h4>{{ assignment.title }}</h4>
+            <span class="submission-count">{{ assignment.submissions|count }} submissions</span>
+          </div>
+          <div class="item-details">
+            <p><i class="fas fa-calendar"></i> Due: {{ assignment.due_date.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><i class="fas fa-star"></i> Max Points: {{ assignment.max_points }}</p>
+          </div>
+          <div class="item-actions">
+            <a href="{{ url_for('teacher.view_submissions', assignment_id=assignment.id) }}" class="btn-secondary">
+              View Submissions
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-state">No assignments created yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Quizzes -->
+    <div class="dashboard-card">
+      <h3>Quizzes</h3>
+      {% if class_obj.quizzes %}
+      <div class="quiz-list">
+        {% for quiz in class_obj.quizzes %}
+        <div class="quiz-item">
+          <div class="item-header">
+            <h4>{{ quiz.title }}</h4>
+            <span class="attempt-count">{{ quiz.attempts|count }} attempts</span>
+          </div>
+          <div class="item-details">
+            <p><i class="fas fa-calendar"></i> Due: {{ quiz.due_date.strftime('%Y-%m-%d %H:%M') }}</p>
+            {% if quiz.time_limit %}
+            <p><i class="fas fa-clock"></i> Time Limit: {{ quiz.time_limit }} minutes</p>
+            {% endif %}
+          </div>
+          <div class="item-actions">
+            <a href="{{ url_for('teacher.add_quiz_questions', class_id=class_obj.id, quiz_id=quiz.id) }}" class="btn-secondary">
+              Manage Questions
+            </a>
+            <a href="{{ url_for('teacher.view_quiz_attempts', quiz_id=quiz.id) }}" class="btn-secondary">
+              View Attempts
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-state">No quizzes created yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Students -->
+    <div class="dashboard-card">
+      <h3>Enrolled Students</h3>
+      {% if class_obj.students.count() > 0 %}
+      <div class="student-list">
+        {% for student in class_obj.students %}
+        <div class="student-item">
+          <p class="student-name">{{ student.username }}</p>
+          <p class="student-email">{{ student.email }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-state">No students enrolled yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .dashboard-header h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 2rem;
+  }
+
+  .dashboard-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .dashboard-content {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .dashboard-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .dashboard-card h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .class-description {
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .class-code {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+  }
+
+  .assignment-list,
+  .quiz-list,
+  .student-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .assignment-item,
+  .quiz-item,
+  .student-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .assignment-item:hover,
+  .quiz-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .item-header h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.25rem;
+  }
+
+  .submission-count,
+  .attempt-count {
+    background: #e9ecef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    color: #495057;
+  }
+
+  .item-details {
+    margin: 1rem 0;
+  }
+
+  .item-details p {
+    margin: 0.5rem 0;
+    color: #495057;
+  }
+
+  .item-details i {
+    width: 20px;
+    color: #6c757d;
+    margin-right: 0.5rem;
+  }
+
+  .item-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: #007bff;
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: #0056b3;
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #495057;
+    border: 1px solid #ced4da;
+  }
+
+  .btn-secondary:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+  }
+
+  .student-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .student-name {
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .student-email {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .empty-state {
+    color: #6c757d;
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .dashboard {
+      padding: 1rem;
+    }
+
+    .dashboard-header {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .item-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 0.5rem;
+    }
+
+    .item-actions {
+      flex-direction: column;
+    }
+
+    .student-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 0.5rem;
+    }
+  }
+</style>
+{% endblock %}

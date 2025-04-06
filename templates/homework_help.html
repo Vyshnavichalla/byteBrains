@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}AI Homework Help{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="fas fa-book"></i> AI Homework Help</h2>
+                    <p class="mb-0 mt-2">Get assistance with your pending assignments</p>
+                </div>
+                <div class="card-body">
+                    {% if assignments %}
+                        <h3 class="mb-3">Your Pending Assignments</h3>
+                        
+                        <div class="pending-assignments">
+                            {% for assignment in assignments %}
+                                <div class="assignment-card mb-4 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h4 class="mb-1">{{ assignment.title }}</h4>
+                                            <p class="text-muted mb-2">Class: {{ assignment.class.name }}</p>
+                                            
+                                            {% if assignment.due_date %}
+                                                <p class="text-{% if assignment.is_past_due() %}danger{% else %}primary{% endif %} mb-2">
+                                                    <i class="fas fa-calendar-alt me-1"></i> 
+                                                    Due: {{ assignment.due_date.strftime('%B %d, %Y') }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        <button class="btn btn-primary btn-sm get-help-btn" 
+                                                data-assignment-id="{{ assignment.id }}"
+                                                data-assignment-title="{{ assignment.title }}">
+                                            <i class="fas fa-magic me-1"></i> Get Help
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="assignment-details mt-2">
+                                        <p>{{ assignment.description }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h4 class="alert-heading">No Pending Assignments</h4>
+                            <p>You don't have any pending assignments at the moment. Great job staying on top of your work!</p>
+                        </div>
+                    {% endif %}
+                    
+                    <hr class="my-4">
+                    
+                    <div class="custom-help-section">
+                        <h3 class="mb-3">Need Help with Something Else?</h3>
+                        <form id="customHelpForm">
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <select class="form-select" id="subject" required>
+                                    <option value="" selected disabled>Select a subject...</option>
+                                    <option value="math">Mathematics</option>
+                                    <option value="science">Science</option>
+                                    <option value="english">English</option>
+                                    <option value="history">History</option>
+                                    <option value="programming">Programming</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="question" class="form-label">Your Question</label>
+                                <textarea class="form-control" id="question" rows="3" required
+                                         placeholder="Describe what you need help with in detail..."></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-question-circle me-2"></i> Ask for Help
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="helpModalLabel">Homework Help</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="loadingHelp" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Getting help for your assignment...</p>
+                    </div>
+                    
+                    <div id="helpContent" class="d-none">
+                        <!-- Help content will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get help buttons
+        const helpButtons = document.querySelectorAll('.get-help-btn');
+        const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+        const helpModalLabel = document.getElementById('helpModalLabel');
+        const loadingHelp = document.getElementById('loadingHelp');
+        const helpContent = document.getElementById('helpContent');
+        
+        // Custom help form
+        const customHelpForm = document.getElementById('customHelpForm');
+        
+        // Set up help button click handlers
+        helpButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const assignmentId = this.dataset.assignmentId;
+                const assignmentTitle = this.dataset.assignmentTitle;
+                
+                // Update modal title
+                helpModalLabel.textContent = `Help with: ${assignmentTitle}`;
+                
+                // Show loading, hide content
+                loadingHelp.classList.remove('d-none');
+                helpContent.classList.add('d-none');
+                
+                // Show the modal
+                helpModal.show();
+                
+                // Get AI help for this assignment
+                fetch(`/ai/assignment-help/${assignmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading, show content
+                        loadingHelp.classList.add('d-none');
+                        helpContent.classList.remove('d-none');
+                        
+                        // Update content
+                        helpContent.innerHTML = data.html_content;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadingHelp.classList.add('d-none');
+                        helpContent.classList.remove('d-none');
+                        helpContent.innerHTML = `
+                            <div class="alert alert-danger">
+                                <h5 class="alert-heading">Error Getting Help</h5>
+                                <p>Sorry, we couldn't get help for this assignment right now. Please try again later.</p>
+                            </div>
+                        `;
+                    });
+            });
+        });
+        
+        // Custom help form submission
+        customHelpForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const subject = document.getElementById('subject').value;
+            const question = document.getElementById('question').value;
+            
+            // Update modal title
+            helpModalLabel.textContent = `Help with ${subject} Question`;
+            
+            // Show loading, hide content
+            loadingHelp.classList.remove('d-none');
+            helpContent.classList.add('d-none');
+            
+            // Show the modal
+            helpModal.show();
+            
+            // Get AI help for the custom question
+            fetch('/ai/custom-help', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    subject: subject,
+                    question: question
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading, show content
+                loadingHelp.classList.add('d-none');
+                helpContent.classList.remove('d-none');
+                
+                // Update content
+                helpContent.innerHTML = data.html_content;
+                
+                // Reset form
+                customHelpForm.reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loadingHelp.classList.add('d-none');
+                helpContent.classList.remove('d-none');
+                helpContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">Error Getting Help</h5>
+                        <p>Sorry, we couldn't get help for your question right now. Please try again later.</p>
+                    </div>
+                `;
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-card {
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+    }
+    
+    .assignment-card:hover {
+        background-color: #f1f3f5;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .assignment-details {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    
+    #helpContent {
+        line-height: 1.7;
+    }
+    
+    #helpContent h1, 
+    #helpContent h2, 
+    #helpContent h3 {
+        color: #3a3a3a;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    #helpContent h1 {
+        font-size: 1.6rem;
+    }
+    
+    #helpContent h2 {
+        font-size: 1.4rem;
+    }
+    
+    #helpContent h3 {
+        font-size: 1.2rem;
+    }
+    
+    #helpContent ul, 
+    #helpContent ol {
+        padding-left: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    #helpContent p {
+        margin-bottom: 1rem;
+    }
+    
+    #helpContent code {
+        background-color: #f6f8fa;
+        border-radius: 3px;
+        padding: 0.2rem 0.4rem;
+        font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    }
+    
+    #helpContent pre {
+        background-color: #f6f8fa;
+        border-radius: 3px;
+        padding: 1rem;
+        overflow: auto;
+        margin-bottom: 1rem;
+        font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% block title %}View Submission{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('teacher.assignment_submissions', assignment_id=assignment.id) }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Submissions
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="submission-header">
+                <h2>{{ assignment.title }}</h2>
+                <div class="submission-meta">
+                    <p>Student: {{ student.name }}</p>
+                    <p>Submitted: {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <p class="due-date">
+                        Due: {{ assignment.due_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% if submission.submitted_at > assignment.due_date %}
+                            <span class="badge bg-danger">Late Submission</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="submission-content">
+                <h4>Student's Submission</h4>
+                <div class="submission-text">
+                    {{ submission.submission_text }}
+                </div>
+            </div>
+
+            <div class="assignment-details">
+                <h4>Assignment Details</h4>
+                <div class="description-content">
+                    {{ assignment.description }}
+                </div>
+                <p class="max-points">
+                    Maximum Points: {{ assignment.max_points }}
+                </p>
+            </div>
+
+            <div class="grading-section">
+                <h4>Grading</h4>
+                <div class="grading-tabs">
+                    <button class="tab-button active" onclick="openTab(event, 'manual-grading')">Manual Grading</button>
+                    <button class="tab-button" onclick="openTab(event, 'auto-grading')">AI Grading</button>
+                </div>
+                
+                <div id="manual-grading" class="tab-content active">
+                    <form method="POST" class="grading-form">
+                        <div class="form-group">
+                            <label for="grade">Grade (out of {{ assignment.max_points }})</label>
+                            <input type="number" id="grade" name="grade" min="0" max="{{ assignment.max_points }}" 
+                                   step="0.1" value="{{ submission.grade }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="feedback">Feedback</label>
+                            <textarea id="feedback" name="feedback" class="form-textarea" rows="5">{{ submission.feedback }}</textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Save Grade</button>
+                    </form>
+                </div>
+                
+                <div id="auto-grading" class="tab-content">
+                    <div class="auto-grade-info">
+                        <p>Use AI to automatically grade this submission. The AI will:</p>
+                        <ul>
+                            <li>Assign a score based on the submission content</li>
+                            <li>Generate detailed feedback for the student</li>
+                            <li>Identify weak topics for further assistance</li>
+                        </ul>
+                    </div>
+                    <form method="POST" class="auto-grade-form">
+                        <input type="hidden" name="auto_grade" value="1">
+                        <button type="submit" class="btn-primary">Auto-Grade Submission</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if submission.grade is not none %}
+                <div class="grade-display">
+                    <h4>Current Grade</h4>
+                    <p class="grade">{{ submission.grade }} / {{ assignment.max_points }}
+                        ({{ "%.2f"|format(submission.grade / assignment.max_points * 100) }}%)</p>
+                    
+                    {% if submission.feedback %}
+                        <div class="feedback-display">
+                            <h4>Feedback</h4>
+                            <div class="feedback-content">
+                                {{ submission.feedback|nl2br }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if submission.weak_topics %}
+                        <div class="weak-topics">
+                            <h4>Weak Topics Identified</h4>
+                            <ul class="topics-list">
+                                {% for topic in submission.weak_topics.split(',') %}
+                                    <li>{{ topic.strip() }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openTab(evt, tabName) {
+        // Hide all tab content
+        var tabContents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.remove("active");
+        }
+        
+        // Remove "active" class from all tab buttons
+        var tabButtons = document.getElementsByClassName("tab-button");
+        for (var i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+        
+        // Show the current tab, and add "active" class to the button that opened the tab
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .submission-header {
+        margin-bottom: 2rem;
+    }
+
+    .submission-meta {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .submission-content,
+    .assignment-details,
+    .grading-section,
+    .grade-display {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .submission-text,
+    .description-content,
+    .feedback-content {
+        white-space: pre-wrap;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+    }
+
+    .max-points {
+        margin-top: 1rem;
+        font-weight: 500;
+    }
+
+    .grading-tabs {
+        display: flex;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .tab-button {
+        padding: 0.5rem 1rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        color: #6c757d;
+        transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+        color: #495057;
+    }
+
+    .tab-button.active {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+    }
+
+    .tab-content {
+        display: none;
+        padding: 1rem 0;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .grading-form,
+    .auto-grade-form {
+        margin-top: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-control {
+        width: 100%;
+        max-width: 200px;
+        padding: 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .grade {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .auto-grade-info {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .auto-grade-info ul {
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.25rem;
+    }
+
+    .bg-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .weak-topics {
+        margin-top: 1.5rem;
+    }
+    
+    .topics-list {
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+    }
+    
+    .topics-list li {
+        margin-bottom: 0.5rem;
+        color: #dc3545;
+    }
+</style>
+{% endblock %} 

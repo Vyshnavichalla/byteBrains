@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% block title %}Join Class{% endblock %} {% block
+content %}
+<div class="auth-container">
+  <h2>Join a Class</h2>
+  <form
+    method="POST"
+    action="{{ url_for('student.join_class') }}"
+    class="auth-form"
+  >
+    <div class="form-group">
+      <label for="join_code">Class Code</label>
+      <input
+        type="text"
+        id="join_code"
+        name="join_code"
+        required
+        placeholder="Enter 6-digit code"
+      />
+    </div>
+    <button type="submit" class="btn-primary">Join Class</button>
+  </form>
+  <p class="auth-link">
+    <a href="{{ url_for('student.dashboard') }}">Back to Dashboard</a>
+  </p>
+</div>
+{% endblock %}

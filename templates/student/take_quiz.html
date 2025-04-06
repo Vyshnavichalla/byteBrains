@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div class="header-navigation">
+            <a href="{{ url_for('student.view_quiz', quiz_id=quiz.id) }}" class="nav-links">
+                <i class="fas fa-arrow-left"></i> Back to Quiz Overview
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="dashboard-card">
+            <div class="quiz-header">
+                <h2>{{ quiz.title }}</h2>
+                <div class="quiz-meta">
+                    <p class="due-date">
+                        Due: {{ quiz.due_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% if datetime.utcnow() > quiz.due_date %}
+                            <span class="badge bg-danger">Past Due</span>
+                        {% endif %}
+                    </p>
+                    {% if quiz.time_limit %}
+                        <p class="time-limit">Time Limit: {{ quiz.time_limit }} minutes</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="POST" class="quiz-form">
+                {% for question in quiz.questions %}
+                    <div class="question-container">
+                        <h4>Question {{ loop.index }}</h4>
+                        <p class="question-text">{{ question.question_text }}</p>
+                        <p class="points-text">Points: {{ question.points }}</p>
+                        
+                        <div class="form-group">
+                            <label for="question_{{ question.id }}">Your Answer:</label>
+                            <textarea class="form-textarea" 
+                                    id="question_{{ question.id }}" 
+                                    name="question_{{ question.id }}" 
+                                    rows="3" 
+                                    required></textarea>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Submit Quiz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .header-navigation {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .nav-links:hover {
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .quiz-header {
+        margin-bottom: 2rem;
+    }
+
+    .quiz-meta {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .question-container {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .question-text {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .points-text {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        text-align: right;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.25rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+{% endblock %} 

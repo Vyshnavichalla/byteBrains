@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Preview{% endblock %}
+
+{% block extra_css %}
+<style>
+  .question-card {
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  .question-header {
+    background-color: #f5f5f5;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    border-radius: 8px 8px 0 0;
+  }
+  .question-body {
+    padding: 15px;
+  }
+  .option {
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 4px;
+  }
+  .option.correct {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-left: 3px solid #28a745;
+  }
+  .explanation {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1 class="card-header">Quiz Preview</h1>
+  <div class="card-body">
+    <div class="quiz-info mb-4">
+      <h2 id="quiz-title">Loading Quiz...</h2>
+      <p>
+        <strong>Subject:</strong> {{ subject }}<br>
+        <strong>Topic:</strong> {{ topic }}<br>
+        <strong>Difficulty:</strong> {{ difficulty }}
+      </p>
+    </div>
+
+    <div id="quiz-loading">
+      <p>Loading quiz content...</p>
+    </div>
+
+    <div id="quiz-content" style="display: none;">
+      <div id="questions-container">
+        <!-- Questions will be inserted here by JavaScript -->
+      </div>
+
+      <form id="save-quiz-form" method="POST" action="{{ url_for('teacher.save_quiz') }}" class="mt-4">
+        <input type="hidden" name="quiz_title" id="hidden-quiz-title">
+        <input type="hidden" name="subject" value="{{ subject }}">
+        <input type="hidden" name="topic" value="{{ topic }}">
+        <input type="hidden" name="difficulty" value="{{ difficulty }}">
+        <input type="hidden" name="quiz_data" id="hidden-quiz-data">
+        <input type="hidden" name="class_id" value="{{ class_id }}">
+
+        <div class="form-group mb-3">
+          <label for="quiz-name">Quiz Name (you can edit):</label>
+          <input type="text" id="quiz-name" name="quiz_name" class="form-control" required>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-success">Save Quiz</button>
+          <a href="{{ url_for('ai.quiz_creator') }}" class="btn btn-secondary">Generate Another</a>
+        </div>
+      </form>
+    </div>
+
+    <div id="quiz-error" style="display: none;">
+      <div class="alert alert-danger">
+        <p>There was an error processing the quiz data. Please try again.</p>
+        <a href="{{ url_for('ai.quiz_creator') }}" class="btn btn-primary mt-2">Go Back</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // The quiz data from the AI
+    const quizDataRaw = `{{ quiz_data|safe }}`;
+    
+    try {
+      // Try to extract JSON from the response
+      let jsonStart = quizDataRaw.indexOf('{');
+      let jsonEnd = quizDataRaw.lastIndexOf('}') + 1;
+      
+      if (jsonStart >= 0 && jsonEnd > jsonStart) {
+        const jsonStr = quizDataRaw.substring(jsonStart, jsonEnd);
+        const quizData = JSON.parse(jsonStr);
+        
+        // Update the quiz title
+        const quizTitle = quizData.quiz_title || "Generated Quiz on " + "{{ topic }}";
+        document.getElementById('quiz-title').textContent = quizTitle;
+        document.getElementById('hidden-quiz-title').value = quizTitle;
+        document.getElementById('quiz-name').value = quizTitle;
+        
+        // Store the cleaned JSON data for submission
+        document.getElementById('hidden-quiz-data').value = JSON.stringify(quizData);
+        
+        // Generate the questions HTML
+        const questionsContainer = document.getElementById('questions-container');
+        
+        quizData.questions.forEach((question, index) => {
+          const questionNumber = index + 1;
+          const questionHtml = `
+            <div class="question-card">
+              <div class="question-header">
+                <h3>Question ${questionNumber}</h3>
+              </div>
+              <div class="question-body">
+                <p class="question-text">${question.question_text}</p>
+                
+                <div class="options-list">
+                  ${question.options.map((option, optIndex) => {
+                    const optionLabel = String.fromCharCode(65 + optIndex); // A, B, C, D
+                    const isCorrect = question.correct_answer === optionLabel;
+                    return `
+                      <div class="option ${isCorrect ? 'correct' : ''}">
+                        <strong>${optionLabel}.</strong> ${option}
+                        ${isCorrect ? '<span class="badge bg-success ms-2">Correct</span>' : ''}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+                
+                <div class="explanation">
+                  <strong>Explanation:</strong> ${question.explanation}
+                </div>
+              </div>
+            </div>
+          `;
+          
+          questionsContainer.innerHTML += questionHtml;
+        });
+        
+        // Hide loading, show content
+        document.getElementById('quiz-loading').style.display = 'none';
+        document.getElementById('quiz-content').style.display = 'block';
+      } else {
+        throw new Error('Could not find valid JSON in the response');
+      }
+    } catch (error) {
+      console.error('Error parsing quiz data:', error);
+      document.getElementById('quiz-loading').style.display = 'none';
+      document.getElementById('quiz-error').style.display = 'block';
+    }
+  });
+</script>
+{% endblock %} 

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}AI Quiz Creator{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1 class="card-header">AI Quiz Creator</h1>
+  <div class="card-body">
+    <p class="mb-4">
+      Use AI to generate educational quizzes for your classes. Provide the details below, and the AI will create
+      multiple-choice questions tailored to your requirements.
+    </p>
+
+    <form method="POST" action="{{ url_for('ai.quiz_creator') }}">
+      <div class="form-group">
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" name="subject" class="form-control" required
+          placeholder="e.g., Mathematics, Science, History...">
+      </div>
+
+      <div class="form-group">
+        <label for="topic">Topic:</label>
+        <input type="text" id="topic" name="topic" class="form-control" required
+          placeholder="e.g., Quadratic Equations, Photosynthesis, World War II...">
+      </div>
+
+      <div class="form-group">
+        <label for="difficulty">Difficulty Level:</label>
+        <select id="difficulty" name="difficulty" class="form-control">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate" selected>Intermediate</option>
+          <option value="advanced">Advanced</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="num_questions">Number of Questions:</label>
+        <select id="num_questions" name="num_questions" class="form-control">
+          <option value="3">3</option>
+          <option value="5" selected>5</option>
+          <option value="7">7</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="class_id">Assign to Class (Optional):</label>
+        <select id="class_id" name="class_id" class="form-control">
+          <option value="">-- Select a Class --</option>
+          {% for class in classes %}
+          <option value="{{ class.id }}">{{ class.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Generate Quiz</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-body">
+    <h3>Quiz Creation Tips:</h3>
+    <ul>
+      <li>Be specific with your topic to get more focused questions</li>
+      <li>The difficulty setting affects the complexity of the questions</li>
+      <li>You can edit the generated quiz before assigning it to students</li>
+      <li>Choose an appropriate number of questions based on your class needs</li>
+    </ul>
+  </div>
+</div>
+{% endblock %} 

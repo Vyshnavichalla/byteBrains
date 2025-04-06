@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}AI Tutoring Hub{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <h1>AI Tutoring Hub</h1>
+  <p class="lead">Select a subject to get personalized tutoring with our AI assistant.</p>
+
+  <div class="tutoring-subjects">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="subject-card">
+          <h3>Mathematics</h3>
+          <p>Get help with algebra, calculus, geometry, statistics, and more.</p>
+          <a href="{{ url_for('ai.tutor', subject='math') }}" class="btn-primary">Start Tutoring</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="subject-card">
+          <h3>Science</h3>
+          <p>Learn physics, chemistry, biology, and environmental science concepts.</p>
+          <a href="{{ url_for('ai.tutor', subject='science') }}" class="btn-primary">Start Tutoring</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="subject-card">
+          <h3>English</h3>
+          <p>Improve your writing, grammar, literature analysis, and vocabulary.</p>
+          <a href="{{ url_for('ai.tutor', subject='english') }}" class="btn-primary">Start Tutoring</a>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4">
+      <div class="col-md-4">
+        <div class="subject-card">
+          <h3>History</h3>
+          <p>Explore world history, historical events, civilizations, and important figures.</p>
+          <a href="{{ url_for('ai.tutor', subject='history') }}" class="btn-primary">Start Tutoring</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="subject-card">
+          <h3>Programming</h3>
+          <p>Learn coding concepts, algorithms, and programming languages.</p>
+          <a href="{{ url_for('ai.tutor', subject='programming') }}" class="btn-primary">Start Tutoring</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="subject-card">
+          <h3>Other Tools</h3>
+          <p>Access other AI-powered learning tools and resources.</p>
+          <div class="tool-links">
+            <a href="{{ url_for('ai.generate_study_plan') }}" class="btn-secondary">Study Plan Generator</a>
+            <a href="{{ url_for('ai.concept_explainer') }}" class="btn-secondary">Concept Explainer</a>
+            <a href="{{ url_for('ai.homework_help') }}" class="btn-secondary">Homework Help</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .lead {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+  }
+  
+  .tutoring-subjects {
+    margin-top: 2rem;
+  }
+  
+  .subject-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    height: 100%;
+    transition: transform 0.2s;
+  }
+  
+  .subject-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .subject-card h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  
+  .subject-card p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+  
+  .tool-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .btn-primary, .btn-secondary {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    text-align: center;
+  }
+  
+  .btn-primary {
+    background: #007bff;
+    color: white;
+  }
+  
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+  
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+  }
+  
+  .col-md-4 {
+    width: 33.333333%;
+    padding: 0 15px;
+    margin-bottom: 30px;
+  }
+  
+  .mt-4 {
+    margin-top: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    .col-md-4 {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %} 

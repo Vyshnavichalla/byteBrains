@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Concept Explainer{% endblock %}
+{% block content %}
+<div class="explainer-container">
+  <div class="explainer-header">
+    <h1>AI Concept Explainer</h1>
+    <p class="lead">Get clear explanations for any academic concept at your preferred level of detail.</p>
+  </div>
+  
+  <div class="explainer-content">
+    <div class="explainer-form-card">
+      <form action="{{ url_for('ai.explain_concept') }}" method="POST">
+        <div class="form-group">
+          <label for="concept">What concept would you like explained?</label>
+          <input type="text" id="concept" name="concept" class="form-control" placeholder="e.g., Photosynthesis, Quadratic Equations, Literary Symbolism" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Explanation Level</label>
+          <div class="difficulty-options">
+            <div class="difficulty-option">
+              <input type="radio" id="beginner" name="difficulty" value="beginner" checked>
+              <label for="beginner">
+                <span class="difficulty-name">Beginner</span>
+                <span class="difficulty-desc">Simple explanations with everyday examples</span>
+              </label>
+            </div>
+            
+            <div class="difficulty-option">
+              <input type="radio" id="medium" name="difficulty" value="medium">
+              <label for="medium">
+                <span class="difficulty-name">Intermediate</span>
+                <span class="difficulty-desc">Balanced explanations with some technical details</span>
+              </label>
+            </div>
+            
+            <div class="difficulty-option">
+              <input type="radio" id="advanced" name="difficulty" value="advanced">
+              <label for="advanced">
+                <span class="difficulty-name">Advanced</span>
+                <span class="difficulty-desc">Detailed technical explanations for deeper understanding</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-primary">Explain This Concept</button>
+      </form>
+    </div>
+    
+    <div class="popular-concepts">
+      <h3>Popular Concepts</h3>
+      <div class="concept-tag-container">
+        <div class="concept-tag" onclick="selectConcept('Photosynthesis')">Photosynthesis</div>
+        <div class="concept-tag" onclick="selectConcept('Newton\'s Laws of Motion')">Newton's Laws of Motion</div>
+        <div class="concept-tag" onclick="selectConcept('Supply and Demand')">Supply and Demand</div>
+        <div class="concept-tag" onclick="selectConcept('DNA Replication')">DNA Replication</div>
+        <div class="concept-tag" onclick="selectConcept('Pythagorean Theorem')">Pythagorean Theorem</div>
+        <div class="concept-tag" onclick="selectConcept('Literary Devices')">Literary Devices</div>
+        <div class="concept-tag" onclick="selectConcept('Chemical Bonding')">Chemical Bonding</div>
+        <div class="concept-tag" onclick="selectConcept('Derivatives in Calculus')">Derivatives in Calculus</div>
+        <div class="concept-tag" onclick="selectConcept('Mitosis vs Meiosis')">Mitosis vs Meiosis</div>
+        <div class="concept-tag" onclick="selectConcept('Object-Oriented Programming')">Object-Oriented Programming</div>
+      </div>
+    </div>
+    
+    <div class="search-tips">
+      <h3>Tips for Better Explanations</h3>
+      <ul class="tips-list">
+        <li>Be specific about what aspect of the concept you'd like explained</li>
+        <li>Include the subject area if the concept appears in multiple fields</li>
+        <li>Choose the appropriate explanation level for your current understanding</li>
+        <li>For complex topics, try breaking them down into smaller concepts</li>
+        <li>Ask follow-up questions in the <a href="{{ url_for('ai.chat_interface') }}">AI Chat</a> for deeper discussions</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .explainer-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .explainer-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .lead {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+  
+  .explainer-content {
+    display: grid;
+    gap: 2rem;
+  }
+  
+  .explainer-form-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #343a40;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+  }
+  
+  .difficulty-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  
+  .difficulty-option {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .difficulty-option input[type="radio"] {
+    display: none;
+  }
+  
+  .difficulty-option label {
+    display: block;
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .difficulty-option input[type="radio"]:checked + label {
+    background: #e7f5ff;
+    border-color: #007bff;
+  }
+  
+  .difficulty-name {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .difficulty-desc {
+    display: block;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+  
+  .btn-primary {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background: #0069d9;
+  }
+  
+  .popular-concepts, .search-tips {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .popular-concepts h3, .search-tips h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  .concept-tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .concept-tag {
+    background: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .concept-tag:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+  }
+  
+  .tips-list {
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+  
+  .tips-list li {
+    margin-bottom: 0.5rem;
+    color: #495057;
+  }
+  
+  .tips-list a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  @media (max-width: 768px) {
+    .difficulty-option {
+      min-width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function selectConcept(concept) {
+    document.getElementById('concept').value = concept;
+    document.getElementById('concept').focus();
+  }
+</script>
+{% endblock %} 

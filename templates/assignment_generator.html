@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Assignment Idea Generator{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="fas fa-lightbulb"></i> Assignment Idea Generator</h2>
+                    <p class="mb-0 mt-2">Get AI-powered creative assignment ideas for your classes</p>
+                </div>
+                <div class="card-body">
+                    <form id="assignmentForm" action="{{ url_for('ai.generate_assignment_idea') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject/Topic</label>
+                            <input type="text" class="form-control" id="subject" name="subject" required
+                                   placeholder="E.g., Renaissance Art, Algebraic Equations, Environmental Science">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="gradeLevel" class="form-label">Grade Level</label>
+                                <select class="form-select" id="gradeLevel" name="grade_level">
+                                    <option value="elementary">Elementary School</option>
+                                    <option value="middle">Middle School</option>
+                                    <option value="high" selected>High School</option>
+                                    <option value="college">College/University</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="assignmentType" class="form-label">Assignment Type</label>
+                                <select class="form-select" id="assignmentType" name="assignment_type">
+                                    <option value="project">Project-Based</option>
+                                    <option value="essay">Essay/Writing</option>
+                                    <option value="research">Research Assignment</option>
+                                    <option value="creative">Creative Assignment</option>
+                                    <option value="problem-solving">Problem-Solving</option>
+                                    <option value="presentation">Presentation</option>
+                                    <option value="any" selected>Any Type (Suggest Best Fit)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="timeframe" class="form-label">Assignment Timeframe</label>
+                            <select class="form-select" id="timeframe" name="timeframe">
+                                <option value="single">Single Class Period</option>
+                                <option value="short" selected>Short Assignment (2-3 Days)</option>
+                                <option value="medium">Medium Assignment (1 Week)</option>
+                                <option value="long">Long-Term Project (2+ Weeks)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="learningGoals" class="form-label">Learning Goals (Optional)</label>
+                            <textarea class="form-control" id="learningGoals" name="learning_goals" rows="3" 
+                                     placeholder="Describe what skills or knowledge you want students to gain from this assignment"></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-magic me-2"></i> Generate Assignment Ideas
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="assignmentResults" class="d-none mt-4">
+                <!-- Results will be displayed here by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const assignmentForm = document.getElementById('assignmentForm');
+        const assignmentResults = document.getElementById('assignmentResults');
+        
+        assignmentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            const submitBtn = assignmentForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+            submitBtn.disabled = true;
+            
+            // Collect form data
+            const formData = new FormData(assignmentForm);
+            
+            // Send AJAX request to the server
+            fetch(assignmentForm.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button state
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                // Display results
+                assignmentResults.innerHTML = `
+                    <div class="card shadow">
+                        <div class="card-header bg-success text-white">
+                            <h3 class="mb-0">Assignment Ideas: ${formData.get('subject')}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="assignment-ideas-content">
+                                ${data.html_content}
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <button id="copyBtn" class="btn btn-outline-primary">
+                                <i class="fas fa-copy me-2"></i> Copy to Clipboard
+                            </button>
+                            <button id="saveBtn" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Save to My Resources
+                            </button>
+                        </div>
+                    </div>
+                `;
+                assignmentResults.classList.remove('d-none');
+                
+                // Scroll to results
+                assignmentResults.scrollIntoView({ behavior: 'smooth' });
+                
+                // Set up copy button
+                document.getElementById('copyBtn').addEventListener('click', function() {
+                    const content = document.querySelector('.assignment-ideas-content').innerText;
+                    navigator.clipboard.writeText(content)
+                        .then(() => {
+                            this.innerHTML = '<i class="fas fa-check me-2"></i> Copied!';
+                            setTimeout(() => {
+                                this.innerHTML = '<i class="fas fa-copy me-2"></i> Copy to Clipboard';
+                            }, 2000);
+                        })
+                        .catch(() => {
+                            this.innerHTML = '<i class="fas fa-times me-2"></i> Failed to copy';
+                            setTimeout(() => {
+                                this.innerHTML = '<i class="fas fa-copy me-2"></i> Copy to Clipboard';
+                            }, 2000);
+                        });
+                });
+                
+                // Set up save button
+                document.getElementById('saveBtn').addEventListener('click', function() {
+                    // Placeholder for saving functionality
+                    alert('This feature will be implemented soon. For now, please copy the content to save it.');
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                // Show error message
+                assignmentResults.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Error Generating Assignment Ideas</h4>
+                        <p>There was a problem generating assignment ideas. Please try again later.</p>
+                    </div>
+                `;
+                assignmentResults.classList.remove('d-none');
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-ideas-content {
+        line-height: 1.7;
+    }
+    
+    .assignment-ideas-content h1, 
+    .assignment-ideas-content h2, 
+    .assignment-ideas-content h3, 
+    .assignment-ideas-content h4 {
+        color: #3a3a3a;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .assignment-ideas-content h1 {
+        font-size: 1.8rem;
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 0.3rem;
+    }
+    
+    .assignment-ideas-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .assignment-ideas-content h3 {
+        font-size: 1.3rem;
+    }
+    
+    .assignment-ideas-content ul, 
+    .assignment-ideas-content ol {
+        padding-left: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .assignment-ideas-content li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %} 

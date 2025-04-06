@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Your Study Plan{% endblock %}
+
+{% block content %}
+<div class="study-plan-container">
+  <div class="study-plan-header">
+    <h1>Your Personalized Study Plan</h1>
+    <p class="lead">Subject: {{ subject }}</p>
+    <p class="goal">Goal: {{ goal }}</p>
+    <a href="{{ url_for('ai.generate_study_plan') }}" class="btn-outline">Create Another Plan</a>
+  </div>
+  
+  <div class="study-plan-content">
+    <div class="study-plan-card">
+      {{ study_plan|safe }}
+    </div>
+    
+    <div class="save-print-actions">
+      <button onclick="window.print()" class="btn-secondary">
+        <i class="fas fa-print"></i> Print Study Plan
+      </button>
+      <button onclick="saveAsPDF()" class="btn-secondary">
+        <i class="fas fa-file-pdf"></i> Save as PDF
+      </button>
+    </div>
+    
+    <div class="next-steps">
+      <h3>Next Steps</h3>
+      <ul class="next-steps-list">
+        <li>Add these study sessions to your calendar to ensure you follow through</li>
+        <li>Find a study buddy or accountability partner to help you stay on track</li>
+        <li>Set small rewards for completing each milestone in your plan</li>
+        <li>Track your progress and adjust your plan as needed</li>
+        <li>Use the <a href="{{ url_for('ai.chat_interface') }}">AI Chat</a> for help with specific topics</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .study-plan-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .study-plan-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .lead {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+  
+  .goal {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+  
+  .btn-outline {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .btn-outline:hover {
+    background: #007bff;
+    color: white;
+  }
+  
+  .study-plan-content {
+    margin-top: 2rem;
+  }
+  
+  .study-plan-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .study-plan-card h1, .study-plan-card h2 {
+    color: #2c3e50;
+  }
+  
+  .study-plan-card h3 {
+    color: #495057;
+  }
+  
+  .study-plan-card ul, .study-plan-card ol {
+    padding-left: 1.5rem;
+  }
+  
+  .study-plan-card li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .save-print-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+  }
+  
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .btn-secondary:hover {
+    background: #5a6268;
+  }
+  
+  .next-steps {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+  }
+  
+  .next-steps h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .next-steps-list {
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+  
+  .next-steps-list li {
+    margin-bottom: 0.75rem;
+    color: #495057;
+  }
+  
+  .next-steps-list a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  @media print {
+    .navbar, .save-print-actions, .next-steps {
+      display: none;
+    }
+    
+    .study-plan-card {
+      box-shadow: none;
+      padding: 0;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function saveAsPDF() {
+    window.alert("To save as PDF, use your browser's print function and select 'Save as PDF' as the destination.");
+    window.print();
+  }
+</script>
+{% endblock %} 

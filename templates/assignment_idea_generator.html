@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Assignment Idea Generator{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1 class="card-header">Assignment Idea Generator</h1>
+  <div class="card-body">
+    <p class="alert alert-info">
+      This feature is coming soon. The AI quiz creator is now available - please try it out!
+    </p>
+    
+    <a href="{{ url_for('ai.quiz_creator') }}" class="btn btn-primary">Go to Quiz Creator</a>
+    <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %} 
